@@ -465,31 +465,23 @@ class AzureSearch(VectorStore):
             filter=filters,
         )
         # Convert results to Document objects
+        # [print(result.keys()) for result in results]
         docs = [
             (
                 Document(
                     page_content=result.pop(FIELDS_CONTENT),
-                    metadata={
-                        **(
-                            {FIELDS_ID: result.pop(FIELDS_ID)}
-                            if FIELDS_ID in result
-                            else {}
-                        ),
-                        **(
-                            json.loads(result[FIELDS_METADATA])
-                            if FIELDS_METADATA in result
-                            else {
-                                k: v
-                                for k, v in result.items()
-                                if k != FIELDS_CONTENT_VECTOR
-                            }
-                        ),
-                    },
+                    metadata={'title': result.pop('title'),
+                              'url': result.pop('url'),
+                              'last_updated': result.pop('last_updated'),
+                              'chunk_id': result.pop('chunk_id'),
+                              'filepath': result.pop('filepath'),
+                              }
                 ),
                 float(result["@search.score"]),
             )
             for result in results
         ]
+        # print(docs)
         return docs
 
     def hybrid_search(self, query: str, k: int = 4, **kwargs: Any) -> List[Document]:
